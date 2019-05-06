@@ -17,7 +17,6 @@ IP_address = str(sys.argv[1])
 Port = int(sys.argv[2])
 s.connect((IP_address, Port))
 print("connected")
-s.send("Client Hello".encode('utf-8'))
 
 input_user = tk.StringVar()
 input_field = tk.Entry(window, text=input_user)
@@ -45,11 +44,14 @@ def recv():
         except OSError: # left
             break
 
+def on_closing():
+    s.send("{Q}".encode('utf-8'))
+
 frame = tk.Frame(window)  # , width=300, height=300)
 input_field.bind("<Return>", Enter_pressed)
 frame.pack()
 
 thread = th.Thread(target=recv)
 thread.start()
-# window.protocol("WM_DELETE_WINDOW", on_closing(thread))
+window.protocol("WM_DELETE_WINDOW", on_closing)
 tk.mainloop()

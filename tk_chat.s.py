@@ -22,16 +22,17 @@ def handle_conn(conn):
     conn.send(welcome.encode("utf-8"))
     while True:
         message = conn.recv(2048)
-        if message != "{Q}":
-            if len(message) != 0:
-                message = "Client("+str(addrs[conn])+"): "+message.decode('utf-8')+"\n"
-                messages.insert(tk.INSERT, message)
-                broadcast(message, conn)
-        else:
-            conn.close()
-            print('client disconnect')
-            del addrs[conn]
-            break
+        if len(message) != 0:
+            message = message.decode('utf-8')
+            if message != "{Q}":
+                    message = "Client("+str(addrs[conn])+"): "+message+"\n"
+                    messages.insert(tk.INSERT, message)
+                    broadcast(message, conn)
+            else:
+                conn.close()
+                print('client disconnect')
+                del addrs[conn]
+                break
 
 def recv_conn():
     while True:
@@ -39,6 +40,9 @@ def recv_conn():
         print('Connected by', addr)
         addrs[conn] = addr
         th.Thread(target=handle_conn, args=(conn,)).start()
+
+def on_closing():
+    s.close()
 
 window = tk.Tk()
 addrs = {}
@@ -67,4 +71,5 @@ frame.pack()
 
 recv_th = th.Thread(target=recv_conn)
 recv_th.start()
+window.protocol("WM_DELETE_WINDOW", on_closing)
 tk.mainloop()
