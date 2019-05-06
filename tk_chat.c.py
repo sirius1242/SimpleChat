@@ -22,7 +22,7 @@ def recv():
             message = s.recv(2048)
             if len(message)!=0:
                 message = message.decode('utf-8')
-                messages.insert(tk.INSERT, 'Server: %s\n' % message)
+                messages.insert(tk.INSERT, message)
         except OSError: # left
             break
 
