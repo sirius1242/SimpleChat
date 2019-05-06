@@ -27,11 +27,12 @@ def handle_conn(conn):
             message = message.decode('utf-8')
             if message != "{Q}":
                     message = "Client("+str(addrs[conn])+"): "+message+"\n"
-                    messages.insert(tk.INSERT, message)
+                    if not cli:
+                        messages.insert(tk.INSERT, message)
                     broadcast(message, conn)
             else:
                 conn.close()
-                print('client disconnect')
+                print('client(%s) disconnect' % str(addrs[conn]))
                 del addrs[conn]
                 break
 
@@ -42,16 +43,27 @@ def recv_conn():
         addrs[conn] = addr
         th.Thread(target=handle_conn, args=(conn,)).start()
 
-window = tk.Tk()
 addrs = {}
-
-window.title("Server")
-messages = tk.Text(window)
-messages.pack()
-
 cli = False
 IP_address = '0.0.0.0'
 Port = 8888
+
+try:
+    window = tk.Tk()
+
+    window.title("Server")
+    messages = tk.Text(window)
+    messages.pack()
+
+    input_user = tk.StringVar()
+    input_field = tk.Entry(window, text=input_user)
+    input_field.pack(side=tk.BOTTOM, fill=tk.X)
+
+    frame = tk.Frame(window)  # , width=300, height=300)
+    input_field.bind("<Return>", Enter_pressed)
+    frame.pack()
+except tk.TclError:
+    cli = True
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], "a:p:c", ["addr", "port"])
@@ -66,24 +78,12 @@ for o, a in opts:
     elif o in ("-p", "--port"):
         Port = int(a)
 
-if len(sys.argv) != 3:
-    exit()
-
 s = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
 s.bind((IP_address, Port))
 s.listen()
 
-input_user = tk.StringVar()
-input_field = tk.Entry(window, text=input_user)
-input_field.pack(side=tk.BOTTOM, fill=tk.X)
-
-frame = tk.Frame(window)  # , width=300, height=300)
-input_field.bind("<Return>", Enter_pressed)
-frame.pack()
-
-recv_th = th.Thread(target=recv_conn)
-recv_th.start()
 if not cli:
+    th.Thread(target=recv_conn).start()
     tk.mainloop()
 else:
-    recv_th.join()
+    recv_conn()

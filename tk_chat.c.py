@@ -10,7 +10,6 @@ def Enter_pressed(event):
     print(input_get)
     s.send(input_get.encode('utf-8'))
     messages.insert(tk.INSERT, 'You: %s\n' % input_get)
-    print('msg sent')
     if input_get == "{Q}":
         s.close()
         window.quit()
@@ -43,7 +42,7 @@ if len(sys.argv) != 3:
 IP_address = str(sys.argv[1])
 Port = int(sys.argv[2])
 s.connect((IP_address, Port))
-print("connected")
+print("Server(%s, %s) connected" % (IP_address, Port))
 
 input_user = tk.StringVar()
 input_field = tk.Entry(window, text=input_user)
