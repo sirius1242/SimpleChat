@@ -41,9 +41,6 @@ def recv_conn():
         addrs[conn] = addr
         th.Thread(target=handle_conn, args=(conn,)).start()
 
-def on_closing():
-    s.close()
-
 window = tk.Tk()
 addrs = {}
 
@@ -71,5 +68,4 @@ frame.pack()
 
 recv_th = th.Thread(target=recv_conn)
 recv_th.start()
-window.protocol("WM_DELETE_WINDOW", on_closing)
 tk.mainloop()
