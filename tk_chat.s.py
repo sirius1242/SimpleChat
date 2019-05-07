@@ -20,21 +20,29 @@ def Enter_pressed(event):
     input_user.set('')
 
 def handle_conn(conn):
-    welcome = 'Server: Welcome ! If you ever want to quit, type {Q} to exit.\n'
+    name = conn.recv(2048).decode('utf-8')[:-1]
+    if name != '' and name != 'Server':
+        names[conn] = name
+    else:
+        names[conn] = str(addrs[conn])
+    welcome = 'Server: Welcome! %s. If you ever want to quit, type {Q} to exit.\n' % names[conn]
     conn.send(welcome.encode("utf-8"))
+    broadcast("Server: %s join the chat" % names[conn], conn)
     while True:
         message = conn.recv(2048)
         if len(message) != 0:
             message = message.decode('utf-8')
             if message != "{Q}":
-                    message = "Client("+str(addrs[conn])+"): "+message+"\n"
-                    if not cli:
-                        messages.insert(tk.END, message)
-                    broadcast(message, conn)
+                message = names[conn]+": "+message
+                if not cli:
+                    messages.insert(tk.END, message)
+                broadcast(message, conn)
             else:
                 conn.close()
+                broadcast("Server: %s leave the chat" % names[conn], conn)
                 print('client(%s) disconnect' % str(addrs[conn]))
                 del addrs[conn]
+                del names[conn]
                 break
 
 def recv_conn():
@@ -45,6 +53,7 @@ def recv_conn():
         th.Thread(target=handle_conn, args=(conn,)).start()
 
 addrs = {}
+names = {}
 cli = False
 IP_address = '0.0.0.0'
 Port = 8888
@@ -69,12 +78,12 @@ except tk.TclError:
     cli = True
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "a:p:c", ["addr", "port"])
+    opts, args = getopt.getopt(sys.argv[1:], "a:p:c", ["addr", "port", "nograph"])
 except getopt.GetoptError as err:
     print(str(err))
-    print("Usage: python th_chat.s.py -a<ip_address> -p<port_number> -c")
+    print("Usage: python th_chat.s.py -a<ip_address> -p<port_number> [-c]")
 for o, a in opts:
-    if o == "-c":
+    if o in ("-c", "--nograph"):
         cli = True
     elif o in ("-a", "--addr"):
         IP_address = str(a)

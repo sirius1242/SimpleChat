@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import simpledialog
 import socket as sk
 import threading as th
 from time import sleep
@@ -9,7 +10,7 @@ def Enter_pressed(event):
     input_user.set("")
     print(input_get)
     s.send(input_get.encode('utf-8'))
-    messages.insert(tk.END, 'You: %s\n' % input_get)
+    messages.insert(tk.END, 'You: %s' % input_get)
     messages.itemconfigure(tk.END, background='lightgreen')
     if input_get == "{Q}":
         s.close()
@@ -23,6 +24,8 @@ def recv():
             if len(message)!=0:
                 message = message.decode('utf-8')
                 messages.insert(tk.END, message)
+                if message[:8] == "Server: ":
+                    messages.itemconfigure(tk.END, foreground='red')
         except OSError: # left
             break
 
@@ -32,7 +35,15 @@ def on_closing():
     exit()
 
 window = tk.Tk()
-window.title("Client")
+window.lower()
+while True:
+    name = simpledialog.askstring("Nick", "Please enter your nick name", parent=window)
+    if name != 'Server':
+        break
+    else:
+        print("Nick can't be 'Server'!")
+window.title("Client(%s)" % name)
+
 frame = tk.Frame(window)  # , width=300, height=300)
 scrollbar = tk.Scrollbar(frame)
 messages = tk.Listbox(frame, width=50, height=15, yscrollcommand=scrollbar.set)
@@ -54,6 +65,7 @@ if len(sys.argv) != 3:
 IP_address = str(sys.argv[1])
 Port = int(sys.argv[2])
 s.connect((IP_address, Port))
+s.send((name+'\n').encode('utf-8'))
 print("Server(%s, %s) connected" % (IP_address, Port))
 
 thread = th.Thread(target=recv)
