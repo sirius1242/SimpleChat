@@ -9,7 +9,8 @@ def Enter_pressed(event):
     input_user.set("")
     print(input_get)
     s.send(input_get.encode('utf-8'))
-    messages.insert(tk.INSERT, 'You: %s\n' % input_get)
+    messages.insert(tk.END, 'You: %s\n' % input_get)
+    messages.itemconfigure(tk.END, background='lightgreen')
     if input_get == "{Q}":
         s.close()
         window.quit()
@@ -21,7 +22,7 @@ def recv():
             message = s.recv(2048)
             if len(message)!=0:
                 message = message.decode('utf-8')
-                messages.insert(tk.INSERT, message)
+                messages.insert(tk.END, message)
         except OSError: # left
             break
 
@@ -32,8 +33,19 @@ def on_closing():
 
 window = tk.Tk()
 window.title("Client")
-messages = tk.Text(window)
-messages.pack()
+frame = tk.Frame(window)  # , width=300, height=300)
+scrollbar = tk.Scrollbar(frame)
+messages = tk.Listbox(frame, width=50, height=15, yscrollcommand=scrollbar.set)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+messages.pack(side=tk.LEFT, fill=tk.BOTH)
+frame.pack()
+
+input_user = tk.StringVar()
+input_field = tk.Entry(window, text=input_user)
+input_field.pack(side=tk.BOTTOM, fill=tk.X)
+
+input_field.bind("<Return>", Enter_pressed)
+
 
 s = sk.socket(sk.AF_INET, sk.SOCK_STREAM)
 if len(sys.argv) != 3:
@@ -43,14 +55,6 @@ IP_address = str(sys.argv[1])
 Port = int(sys.argv[2])
 s.connect((IP_address, Port))
 print("Server(%s, %s) connected" % (IP_address, Port))
-
-input_user = tk.StringVar()
-input_field = tk.Entry(window, text=input_user)
-input_field.pack(side=tk.BOTTOM, fill=tk.X)
-
-frame = tk.Frame(window)  # , width=300, height=300)
-input_field.bind("<Return>", Enter_pressed)
-frame.pack()
 
 thread = th.Thread(target=recv)
 thread.start()

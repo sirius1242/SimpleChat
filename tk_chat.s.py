@@ -13,7 +13,8 @@ def broadcast(msg, conn):
 def Enter_pressed(event):
     input_get = input_field.get()
     print(input_get)
-    messages.insert(tk.INSERT, 'You: %s\n' % input_get)
+    messages.insert(tk.END, 'You: %s\n' % input_get)
+    messages.itemconfigure(tk.END, background='lightgreen')
     for client in addrs:
         client.send(("Server: "+input_get).encode('utf-8'))
     input_user.set('')
@@ -28,7 +29,7 @@ def handle_conn(conn):
             if message != "{Q}":
                     message = "Client("+str(addrs[conn])+"): "+message+"\n"
                     if not cli:
-                        messages.insert(tk.INSERT, message)
+                        messages.insert(tk.END, message)
                     broadcast(message, conn)
             else:
                 conn.close()
@@ -52,16 +53,18 @@ try:
     window = tk.Tk()
 
     window.title("Server")
-    messages = tk.Text(window)
-    messages.pack()
+    frame = tk.Frame(window)  # , width=300, height=300)
+    scrollbar = tk.Scrollbar(frame)
+    messages = tk.Listbox(frame, width=50, height=15, yscrollcommand=scrollbar.set)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    messages.pack(side=tk.LEFT, fill=tk.BOTH)
+    frame.pack()
 
     input_user = tk.StringVar()
     input_field = tk.Entry(window, text=input_user)
     input_field.pack(side=tk.BOTTOM, fill=tk.X)
 
-    frame = tk.Frame(window)  # , width=300, height=300)
     input_field.bind("<Return>", Enter_pressed)
-    frame.pack()
 except tk.TclError:
     cli = True
 
