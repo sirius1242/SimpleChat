@@ -81,7 +81,7 @@ try:
     opts, args = getopt.getopt(sys.argv[1:], "a:p:c", ["addr", "port", "nograph"])
 except getopt.GetoptError as err:
     print(str(err))
-    print("Usage: python th_chat.s.py -a<ip_address> -p<port_number> [-c]")
+    print("Usage: python th_chat.s.py -a<ip_address> -p<port_number> -c")
 for o, a in opts:
     if o in ("-c", "--nograph"):
         cli = True
