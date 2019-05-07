@@ -12,7 +12,6 @@ def broadcast(msg, conn):
 
 def Enter_pressed(event):
     input_get = input_field.get()
-    print(input_get)
     messages.insert(tk.END, 'You: %s\n' % input_get)
     messages.itemconfigure(tk.END, background='lightgreen')
     for client in addrs:
@@ -36,6 +35,7 @@ def handle_conn(conn):
                 message = names[conn]+": "+message
                 if not cli:
                     messages.insert(tk.END, message)
+                print(message)
                 broadcast(message, conn)
             else:
                 conn.close()

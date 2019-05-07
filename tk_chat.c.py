@@ -8,7 +8,6 @@ import sys
 def Enter_pressed(event):
     input_get = input_field.get()
     input_user.set("")
-    print(input_get)
     s.send(input_get.encode('utf-8'))
     messages.insert(tk.END, 'You: %s' % input_get)
     messages.itemconfigure(tk.END, background='lightgreen')
@@ -23,6 +22,7 @@ def recv():
             message = s.recv(2048)
             if len(message)!=0:
                 message = message.decode('utf-8')
+                print(message)
                 messages.insert(tk.END, message)
                 if message[:8] == "Server: ":
                     messages.itemconfigure(tk.END, foreground='red')
