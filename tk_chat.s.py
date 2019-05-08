@@ -25,6 +25,8 @@ def handle_conn(conn):
     else:
         names[conn] = str(addrs[conn])
     welcome = 'Server: Welcome! %s. If you ever want to quit, type {Q} to exit.\n' % names[conn]
+    messages.insert(tk.END, '%s(%s) join the chat' % (names[conn], str(addrs[conn])))
+    messages.itemconfigure(tk.END, foreground='red')
     conn.send(welcome.encode("utf-8"))
     broadcast("Server: %s join the chat" % names[conn], conn)
     while True:
@@ -45,12 +47,28 @@ def handle_conn(conn):
                 del names[conn]
                 break
 
+def on_closing():
+    for conn in addrs:
+        conn.send("Server: Server Closed.".encode('utf-8'))
+        conn.close()
+    if not cli:
+        window.destroy()
+    addrs.clear()
+    names.clear()
+    s.shutdown(sk.SHUT_RDWR)
+
 def recv_conn():
     while True:
-        conn, addr = s.accept()
-        print('Connected by', addr)
-        addrs[conn] = addr
-        th.Thread(target=handle_conn, args=(conn,)).start()
+        try:
+            conn, addr = s.accept()
+            print('Connected by', addr)
+            addrs[conn] = addr
+            new_conn = th.Thread(target=handle_conn, args=(conn,))
+            new_conn.daemon = True
+            new_conn.start()
+        except KeyboardInterrupt:
+            on_closing()
+            break
 
 addrs = {}
 names = {}
@@ -95,7 +113,10 @@ s.bind((IP_address, Port))
 s.listen()
 
 if not cli:
-    th.Thread(target=recv_conn).start()
+    recv_th = th.Thread(target=recv_conn)
+    recv_th.daemon = True
+    recv_th.start()
+    window.protocol("WM_DELETE_WINDOW", on_closing)
     tk.mainloop()
 else:
     recv_conn()
